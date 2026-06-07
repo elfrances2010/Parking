@@ -1,109 +1,267 @@
--- =============================================
--- BASE DE DATOS: parking-backend
--- Proyecto: API REST Node.js + Express + MySQL + JWT
--- Ficha: 3186583 - SENA
--- Autor: Samuel Enrique Burbano Castro
--- =============================================
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 07-06-2026 a las 08:31:45
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.0.30
 
-CREATE DATABASE IF NOT EXISTS `parking-frontend`
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
-USE `parking-frontend`;
 
--- =============================================
--- TABLA: usuarios
--- =============================================
-CREATE TABLE IF NOT EXISTS `usuarios` (
-  `id`         INT AUTO_INCREMENT PRIMARY KEY,
-  `nombre`     VARCHAR(100)  NOT NULL,
-  `email`      VARCHAR(100)  NOT NULL UNIQUE,
-  `password`   VARCHAR(255)  NOT NULL,
-  `rol`        ENUM('admin','gestor','dependencia') NOT NULL DEFAULT 'dependencia',
-  `activo`     TINYINT(1)    NOT NULL DEFAULT 1,
-  `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
--- =============================================
--- TABLA: vehiculos
--- =============================================
-CREATE TABLE IF NOT EXISTS `vehiculos` (
-  `id`         INT AUTO_INCREMENT PRIMARY KEY,
-  `placa`      VARCHAR(20)   NOT NULL UNIQUE,
-  `tipo`       ENUM('carro','moto','bicicleta','otro') NOT NULL DEFAULT 'carro',
-  `propietario` VARCHAR(150) NULL,
-  `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+--
+-- Base de datos: `parking-backend`
+--
 
--- =============================================
--- TABLA: puestos
--- =============================================
-CREATE TABLE IF NOT EXISTS `puestos` (
-  `id`         INT AUTO_INCREMENT PRIMARY KEY,
-  `codigo`     VARCHAR(20)   NOT NULL UNIQUE,
-  `tipo`       ENUM('carro','moto','bicicleta') NOT NULL DEFAULT 'carro',
-  `disponible` TINYINT(1)    NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
 
--- =============================================
--- TABLA: registros
--- =============================================
-CREATE TABLE IF NOT EXISTS `registros` (
-  `id`           INT AUTO_INCREMENT PRIMARY KEY,
-  `vehiculo_id`  INT           NOT NULL,
-  `puesto_id`    INT           NOT NULL,
-  `usuario_id`   INT           NOT NULL,
-  `entrada`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `salida`       DATETIME      NULL,
-  `tarifa`       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-  `total`        DECIMAL(10,2) NULL,
-  `estado`       ENUM('activo','finalizado') NOT NULL DEFAULT 'activo',
-  CONSTRAINT `fk_reg_vehiculo` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos`(`id`),
-  CONSTRAINT `fk_reg_puesto`   FOREIGN KEY (`puesto_id`)   REFERENCES `puestos`(`id`),
-  CONSTRAINT `fk_reg_usuario`  FOREIGN KEY (`usuario_id`)  REFERENCES `usuarios`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+--
+-- Estructura de tabla para la tabla `auditoria`
+--
 
--- =============================================
--- TABLA: tarifas
--- =============================================
-CREATE TABLE IF NOT EXISTS `tarifas` (
-  `id`          INT AUTO_INCREMENT PRIMARY KEY,
-  `tipo`        ENUM('carro','moto','bicicleta') NOT NULL UNIQUE,
-  `valor_hora`  DECIMAL(10,2) NOT NULL,
-  `updated_at`  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `auditoria` (
+  `id` int(11) NOT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
+  `accion` varchar(100) NOT NULL,
+  `tabla` varchar(50) DEFAULT NULL,
+  `registro_id` int(11) DEFAULT NULL,
+  `detalle` text DEFAULT NULL,
+  `ip` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- =============================================
--- TABLA: auditoria
--- =============================================
-CREATE TABLE IF NOT EXISTS `auditoria` (
-  `id`          INT AUTO_INCREMENT PRIMARY KEY,
-  `usuario_id`  INT           NULL,
-  `accion`      VARCHAR(100)  NOT NULL,
-  `tabla`       VARCHAR(50)   NULL,
-  `registro_id` INT           NULL,
-  `detalle`     TEXT          NULL,
-  `ip`          VARCHAR(45)   NULL,
-  `created_at`  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT `fk_aud_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios`(`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- --------------------------------------------------------
 
--- =============================================
--- DATOS INICIALES
--- =============================================
+--
+-- Estructura de tabla para la tabla `puestos`
+--
 
-INSERT INTO `tarifas` (`tipo`, `valor_hora`) VALUES
-  ('carro',      3500.00),
-  ('moto',       2000.00),
-  ('bicicleta',   500.00);
+CREATE TABLE `puestos` (
+  `id` int(11) NOT NULL,
+  `codigo` varchar(20) NOT NULL,
+  `tipo` enum('carro','moto','bicicleta') NOT NULL DEFAULT 'carro',
+  `disponible` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `puestos` (`codigo`, `tipo`) VALUES
-  ('C-01','carro'), ('C-02','carro'), ('C-03','carro'), ('C-04','carro'), ('C-05','carro'),
-  ('C-06','carro'), ('C-07','carro'), ('C-08','carro'), ('C-09','carro'), ('C-10','carro'),
-  ('M-01','moto'),  ('M-02','moto'),  ('M-03','moto'),  ('M-04','moto'),  ('M-05','moto'),
-  ('B-01','bicicleta'), ('B-02','bicicleta'), ('B-03','bicicleta'),
-  ('B-04','bicicleta'), ('B-05','bicicleta');
+--
+-- Volcado de datos para la tabla `puestos`
+--
 
-INSERT INTO `usuarios` (`nombre`, `email`, `password`, `rol`) VALUES
-  ('Administrador', 'admin@parking.com', '123456', 'admin');
+INSERT INTO `puestos` (`id`, `codigo`, `tipo`, `disponible`) VALUES
+(1, 'C-01', 'carro', 1),
+(2, 'C-02', 'carro', 1),
+(3, 'C-03', 'carro', 1),
+(4, 'C-04', 'carro', 1),
+(5, 'C-05', 'carro', 1),
+(6, 'C-06', 'carro', 1),
+(7, 'C-07', 'carro', 1),
+(8, 'C-08', 'carro', 1),
+(9, 'C-09', 'carro', 1),
+(10, 'C-10', 'carro', 1),
+(11, 'M-01', 'moto', 1),
+(12, 'M-02', 'moto', 1),
+(13, 'M-03', 'moto', 1),
+(14, 'M-04', 'moto', 1),
+(15, 'M-05', 'moto', 1),
+(16, 'B-01', 'bicicleta', 1),
+(17, 'B-02', 'bicicleta', 1),
+(18, 'B-03', 'bicicleta', 1),
+(19, 'B-04', 'bicicleta', 1),
+(20, 'B-05', 'bicicleta', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `registros`
+--
+
+CREATE TABLE `registros` (
+  `id` int(11) NOT NULL,
+  `vehiculo_id` int(11) NOT NULL,
+  `puesto_id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `entrada` datetime NOT NULL DEFAULT current_timestamp(),
+  `salida` datetime DEFAULT NULL,
+  `tarifa` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) DEFAULT NULL,
+  `estado` enum('activo','finalizado') NOT NULL DEFAULT 'activo'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tarifas`
+--
+
+CREATE TABLE `tarifas` (
+  `id` int(11) NOT NULL,
+  `tipo` enum('carro','moto','bicicleta') NOT NULL,
+  `valor_hora` decimal(10,2) NOT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `tarifas`
+--
+
+INSERT INTO `tarifas` (`id`, `tipo`, `valor_hora`, `updated_at`) VALUES
+(1, 'carro', 3500.00, '2026-06-07 00:57:49'),
+(2, 'moto', 2000.00, '2026-06-07 00:57:49'),
+(3, 'bicicleta', 500.00, '2026-06-07 00:57:49');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `rol` enum('admin','gestor','dependencia') NOT NULL DEFAULT 'dependencia',
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `nombre`, `email`, `password`, `rol`, `activo`, `created_at`, `updated_at`) VALUES
+(1, 'Administrador', 'admin@parking.com', '$2b$10$YourBcryptHashHereReplaceMe123456789012345678', 'admin', 1, '2026-06-07 00:57:50', '2026-06-07 00:57:50');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `vehiculos`
+--
+
+CREATE TABLE `vehiculos` (
+  `id` int(11) NOT NULL,
+  `placa` varchar(20) NOT NULL,
+  `tipo` enum('carro','moto','bicicleta','otro') NOT NULL DEFAULT 'carro',
+  `propietario` varchar(150) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_aud_usuario` (`usuario_id`);
+
+--
+-- Indices de la tabla `puestos`
+--
+ALTER TABLE `puestos`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `codigo` (`codigo`);
+
+--
+-- Indices de la tabla `registros`
+--
+ALTER TABLE `registros`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_reg_vehiculo` (`vehiculo_id`),
+  ADD KEY `fk_reg_puesto` (`puesto_id`),
+  ADD KEY `fk_reg_usuario` (`usuario_id`);
+
+--
+-- Indices de la tabla `tarifas`
+--
+ALTER TABLE `tarifas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tipo` (`tipo`);
+
+--
+-- Indices de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indices de la tabla `vehiculos`
+--
+ALTER TABLE `vehiculos`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `placa` (`placa`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `auditoria`
+--
+ALTER TABLE `auditoria`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `puestos`
+--
+ALTER TABLE `puestos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+
+--
+-- AUTO_INCREMENT de la tabla `registros`
+--
+ALTER TABLE `registros`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `tarifas`
+--
+ALTER TABLE `tarifas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `vehiculos`
+--
+ALTER TABLE `vehiculos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD CONSTRAINT `fk_aud_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `registros`
+--
+ALTER TABLE `registros`
+  ADD CONSTRAINT `fk_reg_puesto` FOREIGN KEY (`puesto_id`) REFERENCES `puestos` (`id`),
+  ADD CONSTRAINT `fk_reg_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  ADD CONSTRAINT `fk_reg_vehiculo` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
