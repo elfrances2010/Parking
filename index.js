@@ -13,6 +13,11 @@ app.get('/', (req, res) => {
   res.json({ message: 'Servidor funcionando correctamente' });
 });
 
+app.use((req, res, next) => {
+  console.log('Petición recibida:', req.method, req.url);
+  next();
+});
+
 // Rutas de autenticación PRIMERO (no requieren token)
 app.use('/api', routeAuth);
 
