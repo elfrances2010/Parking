@@ -1,5 +1,5 @@
 {
-  "name": "parking-frontend",
+  "name": "parking-backend",
   "version": "1.0.0",
   "type": "module",
   "description": "API REST Node.js + Express + MySQL + JWT",
