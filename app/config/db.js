@@ -4,7 +4,7 @@ const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '',                   // vacía si usas XAMPP sin contraseña
-  database: 'parking-frontend',
+  database: 'parking-backend',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
